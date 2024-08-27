@@ -2,13 +2,13 @@
 
 Welcome to the **Snake Game**—a classic, retro-style snake game built using Python and pygame. You can play the game directly in your browser, thanks to pygbag, or download and run it locally.
 
-
-
 ## Play the Game
 
 You can play the game directly in your browser via GitHub Pages:
 
 [Play Snake Game](https://notdutra.github.io/Snake/)
+
+> **Note**: The game may take 5-10 seconds to load in your web browser.
 
 ## Features
 
@@ -16,6 +16,7 @@ You can play the game directly in your browser via GitHub Pages:
 - Increasing difficulty as the snake grows
 - Responsive controls for a smooth gaming experience
 - Playable directly in your browser—no downloads required!
+- Pause with **P**, quit with **Esc**, and mute with **M**.
 
 ## How to Play
 
@@ -46,7 +47,6 @@ To run the game locally:
     ```bash
     python main.py
     ```
-
 
 ## Contributing
 
