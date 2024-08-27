@@ -1,38 +1,118 @@
 import asyncio
 import pygame
 import random
+import threading
 
+<<<<<<< Updated upstream
 async def game_loop():
     global direction, change_to, score, snake_speed, fruit_spawn, fruit_position
+=======
+# Constants
+SNAKE_SPEED = 15
+WINDOW_X = 720
+WINDOW_Y = 480
+GRID_SIZE = 10
+BLACK = pygame.Color(0, 0, 0)
+WHITE = pygame.Color(255, 255, 255)
+RED = pygame.Color(255, 69, 58)
+GREEN = pygame.Color(50, 215, 75)
 
-    # Setting snake speed variable
-    snake_speed = 15
+# Initialize Pygame
+pygame.init()
+print("Pygame initialized")
 
-    # Window size
-    window_x = 720
-    window_y = 480
+# Load sound effects with error handling
+pygame.mixer.init()
+print("Pygame mixer initialized")
+try:
+    EAT_SOUND = pygame.mixer.Sound('assets/eat.wav')
+    GAME_START_SOUND = pygame.mixer.Sound('assets/game_start.wav')
+    GAME_OVER_SOUND = pygame.mixer.Sound('assets/game_over.wav')
+    DIRECTION_CHANGE_SOUND = pygame.mixer.Sound('assets/direction_change.wav')
+    print("Sound effects loaded successfully")
+except pygame.error as e:
+    print(f"Error loading sound effects: {e}")
+    EAT_SOUND = None
+    GAME_START_SOUND = None
+    GAME_OVER_SOUND = None
+    DIRECTION_CHANGE_SOUND = None
 
+# Load background music with error handling
+try:
+    pygame.mixer.music.load('assets/background_music.wav')
+    print("Background music loaded successfully")
+except pygame.error as e:
+    print(f"Error loading background music: {e}")
+>>>>>>> Stashed changes
 
-    # Defining colors
-    black = pygame.Color(0, 0, 0)
-    white = pygame.Color(255, 255, 255)
-    red = pygame.Color(255, 69, 58)
-    green = pygame.Color(50, 215, 75)
-    blue = pygame.Color(10, 132, 255)
+# Adjust the volume of sounds
+if EAT_SOUND and GAME_START_SOUND and GAME_OVER_SOUND and DIRECTION_CHANGE_SOUND:
+    EAT_SOUND.set_volume(0.3)
+    GAME_START_SOUND.set_volume(0.5)
+    GAME_OVER_SOUND.set_volume(0.5)
+    DIRECTION_CHANGE_SOUND.set_volume(0.2)
+    pygame.mixer.music.set_volume(0.4)
+    print("Sound volumes set successfully")
+else:
+    print("Sound objects not initialized, skipping volume settings")
 
-    # Initialising pygame
-    pygame.init()
+class SnakeGame:
+    def __init__(self):
+        print("Initializing SnakeGame")
+        self.snake_speed = SNAKE_SPEED
+        self.snake_position = [100, 50]
+        self.snake_body = [[100, 50], [90, 50], [80, 50], [70, 50]]
+        self.fruit_position = self.random_fruit_position()
+        self.fruit_spawn = True
+        self.direction = 'RIGHT'
+        self.change_to = self.direction
+        self.score = 0
+        self.high_score = 0
+        self.game_over_flag = False
+        self.pause_flag = False
+        self.mute_flag = False
 
-    # Initialise game window
-    pygame.display.set_caption('Snake')
-    game_window = pygame.display.set_mode((window_x, window_y))
+        # Initialize Pygame and game window
+        pygame.display.set_caption('Snake')
+        self.game_window = pygame.display.set_mode((WINDOW_X, WINDOW_Y))
+        self.fps = pygame.time.Clock()
+        print("SnakeGame initialized")
 
-    # FPS or frames per second controller
-    fps = pygame.time.Clock()
+        # Direction mappings
+        self.opposite_directions = {
+            'UP': 'DOWN',
+            'DOWN': 'UP',
+            'LEFT': 'RIGHT',
+            'RIGHT': 'LEFT'
+        }
+        self.direction_movements = {
+            'UP': (0, -GRID_SIZE),
+            'DOWN': (0, GRID_SIZE),
+            'LEFT': (-GRID_SIZE, 0),
+            'RIGHT': (GRID_SIZE, 0)
+        }
 
-    # Defining snake default position
-    snake_position = [100, 50]
+    def random_fruit_position(self):
+        while True:
+            position = [random.randrange(1, (WINDOW_X // GRID_SIZE)) * GRID_SIZE, random.randrange(1, (WINDOW_Y // GRID_SIZE)) * GRID_SIZE]
+            if position not in self.snake_body:
+                return position
 
+    def play_sound(self, sound):
+        if sound and not self.mute_flag:
+            threading.Thread(target=sound.play).start()
+
+    def show_score(self):
+        score_font = pygame.font.SysFont(None, 20)
+        score_surface = score_font.render('Score : ' + str(self.score), True, WHITE)
+        score_rect = score_surface.get_rect(topleft=(10, 10))
+        self.game_window.blit(score_surface, score_rect)
+
+        high_score_surface = score_font.render('High Score : ' + str(self.high_score), True, WHITE)
+        high_score_rect = high_score_surface.get_rect(topleft=(10, 30))
+        self.game_window.blit(high_score_surface, high_score_rect)
+
+<<<<<<< Updated upstream
     # Defining first 4 blocks of the snake body
     snake_body = [[100, 50], [90, 50], [80, 50], [70, 50]]
 
@@ -87,80 +167,146 @@ async def game_loop():
                     return  # Exit the loop to restart the game
 
         await asyncio.sleep(0)
+=======
+    def show_game_over(self):
+        my_font = pygame.font.SysFont('times new roman', 50)
+        
+        if self.score > self.high_score:
+            self.high_score = self.score
 
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP or event.key == pygame.K_w:
-                    change_to = 'UP'
-                if event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                    change_to = 'DOWN'
-                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                    change_to = 'LEFT'
-                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                    change_to = 'RIGHT'
+        if self.high_score != 0:
+            high_score_surface = my_font.render(f'High score is : {self.high_score}', True, RED)
+            high_score_rect = high_score_surface.get_rect(center=(WINDOW_X/2, WINDOW_Y/3))
+            self.game_window.blit(high_score_surface, high_score_rect)
+            
+        game_over_surface = my_font.render(f'Your score is : {self.score}', True, RED)
+        game_over_rect = game_over_surface.get_rect(center=(WINDOW_X/2, WINDOW_Y/2))
+        self.game_window.blit(game_over_surface, game_over_rect)
 
-        # If two keys pressed simultaneously
-        if change_to == 'UP' and direction != 'DOWN':
-            direction = 'UP'
-        if change_to == 'DOWN' and direction != 'UP':
-            direction = 'DOWN'
-        if change_to == 'LEFT' and direction != 'RIGHT':
-            direction = 'LEFT'
-        if change_to == 'RIGHT' and direction != 'LEFT':
-            direction = 'RIGHT'
+        restart_surface = my_font.render('Press SPACE to restart', True, RED)
+        restart_rect = restart_surface.get_rect(center=(WINDOW_X/2, WINDOW_Y/1.5))
+        self.game_window.blit(restart_surface, restart_rect)
+>>>>>>> Stashed changes
 
-        # Moving the snake
-        if direction == 'UP':
-            snake_position[1] -= 10
-        if direction == 'DOWN':
-            snake_position[1] += 10
-        if direction == 'LEFT':
-            snake_position[0] -= 10
-        if direction == 'RIGHT':
-            snake_position[0] += 10
+    def show_pause(self):
+        my_font = pygame.font.SysFont('times new roman', 50)
+        pause_surface = my_font.render('Game Paused', True, RED)
+        pause_rect = pause_surface.get_rect(center=(WINDOW_X/2, WINDOW_Y/2))
+        self.game_window.blit(pause_surface, pause_rect)
 
-        snake_body.insert(0, list(snake_position))
-        if snake_position[0] == fruit_position[0] and snake_position[1] == fruit_position[1]:
-            score += 10
-            snake_speed += 0.3
-            fruit_spawn = False
-        else:
-            snake_body.pop()
+    def restart_game(self):
+        self.__init__()
+        self.play_sound(GAME_START_SOUND)
+        pygame.mixer.music.play(-1)
 
-        if not fruit_spawn:
-            fruit_position = [
-                random.randrange(1, (window_x // 10)) * 10,
-                random.randrange(1, (window_y // 10)) * 10
-            ]
+    async def main(self):
+        self.play_sound(GAME_START_SOUND)
+        pygame.mixer.music.play(-1)
+        print("Game started")
 
-        fruit_spawn = True
-        game_window.fill(black)
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    return
 
-        for pos in snake_body:
-            pygame.draw.rect(game_window, green, pygame.Rect(pos[0], pos[1], 10, 10))
+                if event.type == pygame.KEYDOWN:
+                    match event.key:
+                        case pygame.K_ESCAPE:
+                            pygame.quit()
+                            return
+                        case pygame.K_UP | pygame.K_w:
+                            if not self.pause_flag and self.direction != 'DOWN' and self.direction != 'UP':
+                                self.change_to = 'UP'
+                                self.play_sound(DIRECTION_CHANGE_SOUND)
+                        case pygame.K_DOWN | pygame.K_s:
+                            if not self.pause_flag and self.direction != 'UP' and self.direction != 'DOWN':
+                                self.change_to = 'DOWN'
+                                self.play_sound(DIRECTION_CHANGE_SOUND)
+                        case pygame.K_LEFT | pygame.K_a:
+                            if not self.pause_flag and self.direction != 'RIGHT' and self.direction != 'LEFT':
+                                self.change_to = 'LEFT'
+                                self.play_sound(DIRECTION_CHANGE_SOUND)
+                        case pygame.K_RIGHT | pygame.K_d:
+                            if not self.pause_flag and self.direction != 'LEFT' and self.direction != 'RIGHT':
+                                self.change_to = 'RIGHT'
+                                self.play_sound(DIRECTION_CHANGE_SOUND)
+                        case pygame.K_SPACE if self.game_over_flag:
+                            self.restart_game()
+                        case pygame.K_p if not self.game_over_flag:
+                            self.pause_flag = not self.pause_flag
+                        case pygame.K_m:
+                            self.mute_flag = not self.mute_flag
+                            if self.mute_flag:
+                                pygame.mixer.music.pause()
+                            else:
+                                pygame.mixer.music.unpause()
 
-        pygame.draw.rect(game_window, white, pygame.Rect(fruit_position[0], fruit_position[1], 10, 10))
+            if self.pause_flag:
+                self.show_pause()
+                pygame.display.update()
+                await asyncio.sleep(0)
+                continue
 
-        if snake_position[0] < 0 or snake_position[0] > window_x - 10:
-            game_over()
-        if snake_position[1] < 0 or snake_position[1] > window_y - 10:
-            game_over()
+            if self.game_over_flag:
+                self.show_game_over()
+                pygame.display.update()
+                await asyncio.sleep(0)
+                continue
 
-        for block in snake_body[1:]:
-            if snake_position[0] == block[0] and snake_position[1] == block[1]:
-                game_over()
+            if self.change_to != self.opposite_directions[self.direction] and self.change_to != self.direction:
+                self.direction = self.change_to
 
-        show_score(1, white, 'times new roman', 20)
-        pygame.display.update()
+            self.snake_position[0] += self.direction_movements[self.direction][0]
+            self.snake_position[1] += self.direction_movements[self.direction][1]
 
-        # Regulate the speed of the game
-        await asyncio.sleep(1 / snake_speed)
+            self.snake_body.insert(0, list(self.snake_position))
+            if self.snake_position == self.fruit_position:
+                self.score += 10
+                self.fruit_spawn = False
+                self.play_sound(EAT_SOUND)
+                if self.score % 50 == 0:
+                    self.snake_speed += 1
+            else:
+                self.snake_body.pop()
 
+            if not self.fruit_spawn:
+                self.fruit_position = self.random_fruit_position()
 
-async def main():
-    await game_loop()
+            self.fruit_spawn = True
+            self.game_window.fill(BLACK)
 
+            for pos in self.snake_body:
+                pygame.draw.rect(self.game_window, GREEN, pygame.Rect(pos[0], pos[1], GRID_SIZE, GRID_SIZE))
 
-# Running the game
-asyncio.run(main())
+            pygame.draw.rect(self.game_window, WHITE, pygame.Rect(self.fruit_position[0], self.fruit_position[1], GRID_SIZE, GRID_SIZE))
+
+            if self.snake_position[0] < 0 or self.snake_position[0] > WINDOW_X - GRID_SIZE:
+                self.game_over_flag = True
+                self.play_sound(GAME_OVER_SOUND)
+                pygame.mixer.music.stop()
+            if self.snake_position[1] < 0 or self.snake_position[1] > WINDOW_Y - GRID_SIZE:
+                self.game_over_flag = True
+                self.play_sound(GAME_OVER_SOUND)
+                pygame.mixer.music.stop()
+
+            for block in self.snake_body[1:]:
+                if self.snake_position == block:
+                    self.game_over_flag = True
+                    self.play_sound(GAME_OVER_SOUND)
+                    pygame.mixer.music.stop()
+
+            self.show_score()
+            pygame.display.update()
+            await asyncio.sleep(0)
+            self.fps.tick(self.snake_speed)
+
+# This is the program entry point:
+if __name__ == "__main__":
+    print("Starting SnakeGame")
+    game = SnakeGame()
+    asyncio.run(game.main())
+    print("SnakeGame ended")
+
+# Do not add anything from here, especially sys.exit/pygame.quit
+# asyncio.run is non-blocking on pygame-wasm and code would be executed right before program start main()
