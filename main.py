@@ -2,9 +2,6 @@ import asyncio
 import pygame
 import random
 
-
-
-
 async def game_loop():
     global direction, change_to, score, snake_speed, fruit_spawn, fruit_position
 
@@ -61,23 +58,35 @@ async def game_loop():
         score_rect = score_surface.get_rect()
         game_window.blit(score_surface, score_rect)
 
-    # Game over function
-    def game_over():
+    # game over function
+    async def game_over():
+        # creating font object my_font
         my_font = pygame.font.SysFont('times new roman', 50)
-        game_over_surface = my_font.render('Your Score is : ' + str(score), True, red)
+
+        # creating a text surface on which text
+        # will be drawn
+        game_over_surface = my_font.render('Your Score is : ' + str(score) + " | Press SPACE to play again", True, red)
+
+        # create a rectangular object for the text surface object
         game_over_rect = game_over_surface.get_rect()
+
+        # setting position of the text
         game_over_rect.midtop = (window_x / 2, window_y / 4)
+
+        # blit will draw the text on screen
         game_window.blit(game_over_surface, game_over_rect)
         pygame.display.flip()
 
-        # This should be awaited when called from an async function
-        async def wait_then_quit():
-            await asyncio.sleep(2)  # Asynchronous sleep
-            pygame.quit()
-            quit()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    return  # Exit the loop to restart the game
 
-        # Schedule the wait_then_quit task
-        asyncio.create_task(wait_then_quit())
+        await asyncio.sleep(0)
 
     while True:
         for event in pygame.event.get():
